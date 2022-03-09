@@ -90,7 +90,7 @@ vppy.plot_light(df)
 
 ### Calculations
 
-*not availabl yet*
+*not available yet*
 
 [DataFrame]: http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html "DataFrame"
 

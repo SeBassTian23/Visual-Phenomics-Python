@@ -28,7 +28,7 @@ def build_dataframe(path=None):
     for p in paths:
       files = os.listdir(p)
 
-      dfheader = ['name', 'time', 'light_intensity']
+      dfheader = ['sample', 'name', 'time', 'light_intensity']
       dfbody = []
       dfdict = {}
       dflightint = {}
@@ -54,14 +54,13 @@ def build_dataframe(path=None):
               
               # get all items
               for key, value in lines.items():
-                
+
                 # Skip the first row
                 if (key == 'name[position][flat][experiment][camera][replicate]'):
                   continue
 
                 if (sample == '*light_intensity'):
-                  # dflightint
-                  if key not in dflightint:
+                  if key not in dflightint or dflightint[key] is nan:
                     try:
                       dflightint[key] = float(value)
                     except:
@@ -71,20 +70,24 @@ def build_dataframe(path=None):
                 # Create a dict entry for sample+time if it doesn't exist
                 if sample+key not in dfdict:
                   meta = re.findall(r"(?<=\[).*?(?=\])", sample)
-                  dfdict[sample+key] = { 'name': sample.split('[')[0], 'sample': sample, 'time': float(key), 'position': meta[0], 'flat': meta[1], 'experiment': meta[2], 'camera': meta[3], 'replicate': meta[4] }
+                  dfdict[sample+key] = { 'name': sample.split('[')[0], 'sample': sample, 'light_intensity': nan, 'time': float(key), 'position': meta[0], 'flat': meta[1], 'experiment': meta[2], 'camera': meta[3], 'replicate': meta[4] }
 
                 dfdict[sample+key][file_name] = float(value)
 
-
-      dfheader += ['position', 'flat', 'experiment', 'camera', 'replicate', 'sample']
+      dfheader += ['position', 'flat', 'experiment', 'camera', 'replicate']
 
       for row in dfdict:
-        if '*light_intensity' in dfdict[row]:
-          dfdict[row]['*light_intensity'] = dflightint[dfdict[row]['time']]
+        if 'light_intensity' in dfdict[row]:
+          dfdict[row]['light_intensity'] = dflightint[str(dfdict[row]['time'])]
         dfbody.append(dfdict[row])
 
       df = pd.DataFrame(dfbody, columns=dfheader)
       df[['name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']] = df[['name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']].astype("category")
+
+      for col in list(df):
+        if df[col].dropna().size == 0:
+          df.drop(col, axis=1, inplace=True)
+      
       return df
   else:
     print('Path not defined')

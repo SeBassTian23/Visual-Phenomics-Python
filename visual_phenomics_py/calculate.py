@@ -2,70 +2,274 @@
 Calculate additional parameters or recalculate parameters.
 """
 
-from numpy import nan
+from visual_phenomics_py.parameters import *
+from visual_phenomics_py.parameters_additional import *
 
-def phi2_phinpq_ideal(qL, Phi2, PhiNO, PhiNO_opt = 0.25):
-  """
-  Calculate ideal Phi2 and PhiNPQ from a fluorescence measurement based on qL, Phi2 and PhiNO.
 
-  :param qL: Measured qL
-  :param Phi2: Measured Phi2
-  :param PhiNO: Measured Phi2
-  :param PhiNO_opt: The optimum PhiNO value (default: 0.25)
-  :returns: a list with Phi2 ratio, ideal Phi2, ideal PhiNPQ, delta NPQ
-  """
+def calculate(df=None, param='', *, fm='fm', f0='f0', fmp='fmp', f0p='f0p', fs='fs', fmpp='fmpp', f0pp='f0pp', fmf0=4.88, alias=None):
+    """Calculate photosynthetic parameters
 
-  Phi2_0_Phi2_2 = 1+ Phi2 * (1/PhiNO_opt - 1/PhiNO)/ (qL  * 4.88) 
-  
-  Phi2_2_Phi2_0 = 1/Phi2_0_Phi2_2
+    Calculate photosynthetic parameters from basic fluorescence parameters
 
-  Phi2_ideal = Phi2 * Phi2_2_Phi2_0
-  PhiNPQ_ideal = 1 - (Phi2_ideal + 0.2)
-  delta_NPQ = 1/0.2 - 1/PhiNO
+    :param df: The DataFrame to add the calculated parameters to.
+    :param param: Parameter to calculate ('Fvfm','NPQ', 'NPQt','Phi2','PhiNO','PhiNPQ','qE','qEsv','qEt','qI','qIt','qL','qP')
+    :param fm: fm column name (default 'fm')
+    :param f0: f0 column name (default 'f0')
+    :param fmp: fmp column name (default 'fmp')
+    :param f0p: f0p column name (default 'f0p')
+    :param fs: fs column name (default 'fs')
+    :param fmpp: fmpp column name (default 'fmpp')
+    :param f0pp: f0pp column name (default 'f0pp')
+    :param fmf0: Fm/F0 for t parameter (default 4.88)
+    :param alias: rename the selected parameter (default None)
+    :returns: a dataframe column for the calculated parameter
+    """
 
-  return [Phi2_2_Phi2_0, Phi2_ideal, PhiNPQ_ideal, delta_NPQ]
+    # Parameter Names
+    parameters = ['Fvfm', 'NPQ', 'NPQt', 'Phi2', 'PhiNO', 'PhiNOt',
+                  'PhiNPQ', 'PhiNPQt', 'qE', 'qEsv', 'qEt', 'qI', 'qIt', 'qL', 'qP']
 
-def calculate_ideal_parameters(df=None, phi2='phi2', phino='phino', qL='ql', phino_opt = 0.25):
-  """
-  Calculate ideal Phi2 and PhiNPQ from a fluorescence measurement based on qL, Phi2 and PhiNO.
+    if df is None:
+        raise Exception('No DataFrame selected.')
+    if (param in parameters):
+        alias_txt = ""
+        if alias is not None:
+            alias_txt = " as {0}".format(alias)
 
-  :param df: The DataFrame to add the calculated parameters to.
-  :param qL: Measured qL
-  :param Phi2: Measured Phi2
-  :param PhiNO: Measured Phi2
-  :param PhiNO_opt: The optimum PhiNO value (default: 0.25)
-  :returns: a list with Phi2 ratio, ideal Phi2, ideal PhiNPQ, delta NPQ
-  """
+        print('Calculating {0}{1}'.format(param, alias_txt))
 
-  if df is not None:
-    df['Vx'] = df[phino] * 0.5 * (1-df[qL])
-    df['Phi2 - ideal']   = nan
-    df['PhiNPQ - ideal'] = nan
-    df['Delta NPQ']      = nan
-    df['Phi2 - ratio']   = nan
+        for row in df.sort_values(by=['sample', 'time'], ascending=True).fillna(method="ffill").itertuples():
+            if param == 'Fvfm':
+                if {fm, f0}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = fvfm(
+                        getattr(row, fm), getattr(row, f0))
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fm and f0')
 
-    for idx,row in df[[phi2,qL,phino]].dropna().iterrows():
-      phi2ratio, phi2_ideal, phinpq_ideal, delta_npq = phi2_phinpq_ideal(row[qL],row[phi2],row[phino], 0.25)
+            elif param == 'NPQ':
+                if {fm, fmp}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = npq(
+                        getattr(row, fm), getattr(row, fmp))
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fm and fmp')
 
-      df.loc[idx,'Phi2 - ideal']   = phi2_ideal
-      df.loc[idx,'PhiNPQ - ideal'] = phinpq_ideal
-      df.loc[idx,'Delta NPQ']      = delta_npq
-      df.loc[idx,'Phi2 - ratio']   = phi2ratio
+            elif param == 'NPQt':
+                if {fmp, f0p}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = npqt(
+                        getattr(row, fmp), getattr(row, f0p), fmf0)
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmp and f0p')
 
-  else:
-    print('No DataFrame selected.')
+            elif param == 'Phi2':
+                if {fmp, fs}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = phi2(
+                        getattr(row, fmp), getattr(row, fs))
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmp and fs')
 
-def calculate():
-  # Fvfm        (fm - f0) / fm
-  # Npq         (fm - fmp) / fmp
-  # Npqt        (4.88 / ((fmp / f0p) - 1)) - 1
-  # Phi2        (fmp - fs) / fmp
-  # Phino       1 / (npqt + (1 + (ql * 8.88)))
-  # Phinpq      1 - phi2 - phiNo
-  # Qe          (fmpp - fmp) / fmp
-  # Qesv        (fm / fmp) - (fm / fmpp)
-  # Qet         npqt - qit
-  # Qi          (fm - fmpp) / fmpp
-  # Qit         (4.88 / ((fmpp / f0pp) - 1)) - 1
-  # QI          ((fmp - fs) / (fmp - f0p)) * (f0p / fs)
-  print("Not implemented yet")
+            elif param == 'PhiNO':
+                if {fmp, fs, f0p, fm, f0}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = phino(getattr(row, fmp), getattr(
+                        row, fs), getattr(row, f0p), getattr(row, fm), getattr(row, f0))
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmp, fs, fm, and f0')
+
+            elif param == 'PhiNOt':
+                if {fmp, fs, f0p}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = phinot(
+                        getattr(row, fmp),  getattr(row, fs), getattr(row, f0p), fmf0)
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmp, fs, and f0p')
+
+            elif param == 'PhiNPQ':
+                if {fmp, fs, f0p, fm, f0}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = phinpq(getattr(row, fmp), getattr(
+                        row, fs), getattr(row, f0p), getattr(row, fm), getattr(row, f0))
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmp, fs, f0p, fm, and f0')
+
+            elif param == 'PhiNPQt':
+                if {fmp, fs, f0p}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = phinpqt(
+                        getattr(row, fmp), getattr(row, fs), getattr(row, f0p), fmf0)
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmp, fs, and f0p')
+
+            elif param == 'qE':
+                if {fmpp, fmp}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = qe(
+                        getattr(row, fmpp), getattr(row, fmp))
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmpp and fmp')
+
+            elif param == 'qEsv':
+                if {fm, fmp, fmpp}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = qesv(
+                        getattr(row, fm), getattr(row, fmp), getattr(row, fmpp))
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fm, fmp, and fmpp')
+
+            elif param == 'qEt':
+                if {fmp, f0p, fmpp, f0pp}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = qet(getattr(row, fmp), getattr(
+                        row, f0p), getattr(row, fmpp), getattr(row, f0pp), fmf0)
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmp, f0p, fmpp, and f0pp')
+
+            elif param == 'qI':
+                if {fm, fmpp}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = qi(
+                        getattr(row, fm), getattr(row, fmpp))
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fm and fmpp')
+
+            elif param == 'qIt':
+                if {fmpp, f0pp}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = qit(
+                        getattr(row, fmpp), getattr(row, f0pp), fmf0)
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmpp and f0pp')
+
+            elif param == 'qL':
+                if {fmp, fs, f0p}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = ql(
+                        getattr(row, fmp), getattr(row, fs), getattr(row, f0p))
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmp, fs, and f0p')
+
+            elif param == 'qP':
+                if {fmp, fs, f0p}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = qp(
+                        getattr(row, fmp), getattr(row, fs), getattr(row, f0p))
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmp, fs, and f0p')
+
+            else:
+                raise Exception("No matching parameter found.")
+    else:
+        raise Exception('Unknown parameter. Available parameters are: {0}'.format(
+            ", ".join(parameters)))
+
+
+def calculate_additional(df=None, param='', *, v_phino='PhiNOt', v_phi2='Phi2', v_ql='qL', v_par='light_intensity', phinoopt=0.2, absorptivity=0.5, fmf0=4.88, alias=None):
+    """Calculate additional Parameters
+
+    Calculate additional photosynthetic parameters based on calculated standard parameters
+
+    :param df: The DataFrame to add the calculated parameters to.
+    :param param: Parameter to calculate ('LEF', 'Vx', 'SPhi2', 'SNPQ', 'deltaNPQ')
+    :param v_phino: PhiNO column name (default 'PhiNOt')
+    :param v_phi2: Phi2 column name (default 'Phi2')
+    :param v_ql: qL column name (default 'qL')
+    :param phinoopt: Optimal PhiNO (default 0.2)
+    :param absorptivity: Absorptivity for Vx parameter (default 0.5)
+    :param fmf0: Fm/F0 for t parameter (default 4.88)
+    :param alias: rename the selected parameter (default None)
+    :returns: a dataframe column for the calculated parameter
+    """
+
+    # Parameter Names
+    parameters = ['LEF', 'Vx', 'SPhi2', 'SNPQ', 'deltaNPQ']
+
+    if df is None:
+        raise Exception('No DataFrame selected.')
+
+    if (param in parameters):
+        alias_txt = ""
+        if alias is not None:
+            alias_txt = " as {0}".format(alias)
+
+        print('Calculating {0}{1}'.format(param, alias_txt))
+
+        for row in df.sort_values(by=['sample', 'time'], ascending=True).fillna(method="ffill").itertuples():
+            if param == 'LEF':
+                if {v_phi2, v_par}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = lef(
+                        getattr(row, v_phi2), getattr(row, v_par), absorptivity)
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for v_phi2 and v_par')
+
+            elif param == 'Vx':
+                if {v_phino, v_phi2}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = vx(
+                        getattr(row, v_phino), getattr(row, v_phi2), absorptivity)
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for v_phino and v_phi2')
+
+            elif param == 'SPhi2':
+                if {v_phino, v_phi2, v_ql}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = sphi2(
+                        getattr(row, v_phi2), getattr(row, v_phino), getattr(row, v_ql), phinoopt, fmf0)
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for v_phino, v_phi2, and v_ql')
+
+            elif param == 'SNPQ':
+                if {v_phino, v_phi2}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = sphinpq(
+                        getattr(row, v_phi2), getattr(row, v_phino), getattr(row, v_ql), phinoopt, fmf0)
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for v_phino, v_phi2, and v_ql')
+
+            elif param == 'deltaNPQ':
+                if {v_phino}.issubset(df.columns):
+                    df.at[row.Index, alias or param] = deltanpq(
+                        getattr(row, v_phino), phinoopt)
+                else:
+                    raise Exception(
+                        'Missing parameter(s). Define columns for fmp, fs, and f0p')
+
+            else:
+                raise Exception("No matching parameter found.")
+
+    else:
+        raise Exception('Unknown parameter. Available parameters are: {0}'.format(
+            ", ".join(parameters)))
+
+
+def calculate_custom(df=None, name='', fn=None, *, cols=[], params={}):
+    """Calculate additional Parameters
+
+    Use a custom function to calculate a custom parameter.
+
+    :param df: The DataFrame to add the calculated parameters to.
+    :param name: Parameter name
+    :param fn: Function name for the calculation
+    :param cols: Column names for parameters passed to function. (*args)
+    :param params: Parameters passed on to the function (**kwargs)
+    :returns: a dataframe column for the custom calculated parameter
+    """
+
+    if df is None:
+        raise Exception('No DataFrame selected.')
+
+    if name == '' or name is None:
+        raise Exception('No parameter name defined.')
+
+    if (fn is None):
+        raise Exception('No function defined.')
+
+    if hasattr(fn, '__call__'):
+        for row in df.sort_values(by=['sample', 'time'], ascending=True).fillna(method="ffill").itertuples():
+            df.at[row.Index, name] = fn(
+                *[getattr(row, n) for n in cols], **params)
+    else:
+        raise Exception('No function defined.')

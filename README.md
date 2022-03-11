@@ -1,6 +1,6 @@
 # Visual Phenomics | DataFrame
 
-> Import data output from Visual Phenomics into a convenient [DataFrame] for subsequent analysis in [Python].
+> Import data output from [Visual Phenomics] into a convenient [DataFrame] for subsequent analysis in [Python].
 
 ## Installation
 Install using pip in the terminal. If you are using [Anaconda], make sure, you are using the Conda environment, activating it using the `conda activate` command in the terminal.
@@ -28,7 +28,7 @@ Import one experiment processed by Visual Phenomics.
 ```py
 import visual_phenomics_py as vppy
 
-vppy.build_dataframe('./path/to/experiment-data')
+vppy.dataframe('./path/to/experiment-data')
 ```
 
 ### Import Multiple Experiments
@@ -36,7 +36,7 @@ vppy.build_dataframe('./path/to/experiment-data')
 ```py
 import visual_phenomics_py as vppy
 
-df = vppy.build_dataframe(['./path/to/experiment_01','./path/to/experiment_02'])
+df = vppy.dataframe(['./path/to/experiment_01','./path/to/experiment_02'])
 ```
 
 ## Additional Functions
@@ -178,3 +178,5 @@ vppy.calculate_custom(df, 'CustomLEF', func, cols=['fmp', 'fs', 'light_intensity
 [Anaconda]: https://www.continuum.io/downloads "Anaconda"
 
 [DataFrame]: http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html "DataFrame"
+
+[Visual Phenomics]: https://caapp-msu.bitbucket.io/projects/visualphenomics5.0 "Visual Phenomics 5"

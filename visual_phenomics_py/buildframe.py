@@ -8,87 +8,93 @@ import os
 import pandas as pd
 import re
 
-def build_dataframe(path=None):
-  """
-  Get a DataFrame for an Experiment from a set of text files with calculated parameters.
 
-  :param path: the path to the directory with calulated parameter text files
-  :returns: a dataframe containing parameters from all files
-  :raises Exception: if the path is invalid or the data is malformed
-  """
-  if path is not None:
+def dataframe(path=None):
+    """Build DataFrame from Visual Phenomics output.
+
+    Get a DataFrame for an Experiment from a set of text files with calculated parameters.
+
+    :param path: the path to the directory with calulated parameter text files
+    :returns: a dataframe containing parameters from all files
+    :raises Exception: if the path is invalid or the data is malformed
+    """
+
+    if path is None:
+        raise Exception('Path not defined')
 
     paths = []
     if isinstance(path, str):
-      paths.append(path)
+        paths.append(path)
 
     elif isinstance(path, list):
-      paths += path
+        paths += path
 
     for p in paths:
-      files = os.listdir(p)
+        files = os.listdir(p)
 
-      dfheader = ['sample', 'name', 'time', 'light_intensity']
-      dfbody = []
-      dfdict = {}
-      dflightint = {}
+        dfheader = ['sample', 'name', 'time', 'light_intensity']
+        dfbody = []
+        dfdict = {}
+        dflightint = {}
 
-      for f in files:
-        file_name = re.sub(r'^all', '', os.path.splitext(f)[0], 1)
-        file_ext = os.path.splitext(f)[1]
-        if file_ext == '.txt':
-          # opening the CSV file
-          with open(p+f, mode ='r') as file:   
-              
-            # reading the CSV file
-            csvFile = csv.DictReader(file, delimiter='\t')
+        for f in files:
+            file_name = re.sub(r'^all', '', os.path.splitext(f)[0], 1)
+            file_ext = os.path.splitext(f)[1]
+            if file_ext == '.txt':
+                # opening the CSV file
+                with open(p+f, mode='r') as file:
 
-            # add column header
-            dfheader.append(file_name)
-      
-            # looping through the rows in the csv file
-            for lines in csvFile:
+                    # reading the CSV file
+                    csvFile = csv.DictReader(file, delimiter='\t')
 
-              # get the sample name
-              sample = lines['name[position][flat][experiment][camera][replicate]']
-              
-              # get all items
-              for key, value in lines.items():
+                    # add column header
+                    dfheader.append(file_name)
 
-                # Skip the first row
-                if (key == 'name[position][flat][experiment][camera][replicate]'):
-                  continue
+                    # looping through the rows in the csv file
+                    for lines in csvFile:
 
-                if (sample == '*light_intensity'):
-                  if key not in dflightint or dflightint[key] is nan:
-                    try:
-                      dflightint[key] = float(value)
-                    except:
-                      dflightint[key] = nan
-                  continue
+                        # get the sample name
+                        sample = lines['name[position][flat][experiment][camera][replicate]']
 
-                # Create a dict entry for sample+time if it doesn't exist
-                if sample+key not in dfdict:
-                  meta = re.findall(r"(?<=\[).*?(?=\])", sample)
-                  dfdict[sample+key] = { 'name': sample.split('[')[0], 'sample': sample, 'light_intensity': nan, 'time': float(key), 'position': meta[0], 'flat': meta[1], 'experiment': meta[2], 'camera': meta[3], 'replicate': meta[4] }
+                        # get all items
+                        for key, value in lines.items():
 
-                dfdict[sample+key][file_name] = float(value)
+                            # Skip the first row
+                            if (key == 'name[position][flat][experiment][camera][replicate]'):
+                                continue
 
-      dfheader += ['position', 'flat', 'experiment', 'camera', 'replicate']
+                            if (sample == '*light_intensity'):
+                                if key not in dflightint or dflightint[key] is nan:
+                                    try:
+                                        dflightint[key] = float(value)
+                                    except:
+                                        dflightint[key] = nan
+                                continue
 
-      for row in dfdict:
-        if 'light_intensity' in dfdict[row]:
-          dfdict[row]['light_intensity'] = dflightint[str(dfdict[row]['time'])]
-        dfbody.append(dfdict[row])
+                            # Create a dict entry for sample+time if it doesn't exist
+                            if sample+key not in dfdict:
+                                meta = re.findall(
+                                    r"(?<=\[).*?(?=\])", sample)
+                                dfdict[sample+key] = {'name': sample.split('[')[0], 'sample': sample, 'light_intensity': nan, 'time': float(
+                                    key), 'position': meta[0], 'flat': meta[1], 'experiment': meta[2], 'camera': meta[3], 'replicate': meta[4]}
 
-      df = pd.DataFrame(dfbody, columns=dfheader)
-      df[['name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']] = df[['name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']].astype("category")
+                            dfdict[sample+key][file_name] = float(value)
 
-      for col in list(df):
-        if df[col].dropna().size == 0:
-          df.drop(col, axis=1, inplace=True)
-      
-      return df
-  else:
-    print('Path not defined')
-    return None
+        dfheader += ['position', 'flat',
+                     'experiment', 'camera', 'replicate']
+
+        for row in dfdict:
+            if 'light_intensity' in dfdict[row]:
+                dfdict[row]['light_intensity'] = dflightint[str(
+                    dfdict[row]['time'])]
+            dfbody.append(dfdict[row])
+
+        df = pd.DataFrame(dfbody, columns=dfheader)
+        df[['name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']] = df[[
+            'name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']].astype("category")
+
+        for col in list(df):
+            if df[col].dropna().size == 0:
+                df.drop(col, axis=1, inplace=True)
+
+        return df

@@ -18,6 +18,9 @@ def plot_light(df=None):
     if df is None:
         raise Exception('No DataFrame selected.')
 
+    if 'light_intensity' not in df:
+        raise Exception('No "light_intensity" column found.')
+
     df.groupby(['time', 'light_intensity'])[['time', 'light_intensity']].agg('mean').plot(
         kind='scatter',
         x='time',

@@ -47,54 +47,88 @@ def dataframe(path=None):
                     # reading the CSV file
                     csvFile = csv.DictReader(file, delimiter='\t')
 
-                    # add column header
-                    dfheader.append(file_name)
+                    # define possible sample header column names
+                    sampleNameHeader = 'name[position][flat][experiment][camera][replicate]'
+                    sampleNameHeaderOld = 'name[flat][experiment][camera][replicate]'
 
-                    # looping through the rows in the csv file
-                    for lines in csvFile:
+                    # check if file content is correct
+                    if (sampleNameHeader not in csvFile.fieldnames) & (sampleNameHeaderOld not in csvFile.fieldnames):
+                        print('File "{0}" has the wrong format.'.format(f))
 
-                        # get the sample name
-                        sample = lines['name[position][flat][experiment][camera][replicate]']
+                    else:
+                        # add column header
+                        dfheader.append(file_name)
 
-                        # get all items
-                        for key, value in lines.items():
+                        # get sample name header
+                        sampleNameHeaderUse = sampleNameHeader
+                        if sampleNameHeader not in csvFile.fieldnames:
+                            sampleNameHeaderUse = sampleNameHeaderOld
 
-                            # Skip the first row
-                            if (key == 'name[position][flat][experiment][camera][replicate]'):
+                        # looping through the rows in the csv file
+                        for lines in csvFile:
+
+                            # get the sample name
+                            sample = lines[sampleNameHeaderUse]
+
+                            # if the sample name is empty or null, skip the row
+                            if (sample[0] == '[') or (re.match(r'^null', sample)):
                                 continue
 
-                            if (sample == '*light_intensity'):
-                                if key not in dflightint or dflightint[key] is nan:
-                                    try:
-                                        dflightint[key] = float(value)
-                                    except:
-                                        dflightint[key] = nan
-                                continue
+                            # get all items
+                            for key, value in lines.items():
 
-                            # Create a dict entry for sample+time if it doesn't exist
-                            if sample+key not in dfdict:
-                                meta = re.findall(
-                                    r"(?<=\[).*?(?=\])", sample)
-                                dfdict[sample+key] = {'name': sample.split('[')[0], 'sample': sample, 'light_intensity': nan, 'time': float(
-                                    key), 'position': meta[0], 'flat': meta[1], 'experiment': meta[2], 'camera': meta[3], 'replicate': meta[4]}
+                                # Skip the first row
+                                if (key == sampleNameHeaderUse):
+                                    continue
 
-                            dfdict[sample+key][file_name] = float(value)
+                                if (sample == '*light_intensity'):
+                                    if key not in dflightint or dflightint[key] is nan:
+                                        try:
+                                            dflightint[key] = float(value)
+                                        except:
+                                            dflightint[key] = nan
+                                    continue
+
+                                # Create a dict entry for sample+time if it doesn't exist
+                                if sample+key not in dfdict:
+                                    meta = re.findall(
+                                        r"\[(.*?)\]", sample)
+
+                                    # Some samples seem to miss the position
+                                    if len(meta) == 4:
+                                        meta.insert(0, "n/a")
+                                    if meta[0] == '':
+                                        meta[0] = "n/a"
+
+                                    dfdict[sample+key] = {'name': sample.split('[')[0], 'sample': sample, 'light_intensity': nan, 'time': float(
+                                        key), 'position': meta[0], 'flat': meta[1], 'experiment': meta[2], 'camera': meta[3], 'replicate': meta[4]}
+
+                                # Add nan if float value parsing fails
+                                try:
+                                    dfdict[sample +
+                                           key][file_name] = float(value)
+                                except:
+                                    dfdict[sample+key][file_name] = nan
 
         dfheader += ['position', 'flat',
                      'experiment', 'camera', 'replicate']
 
         for row in dfdict:
             if 'light_intensity' in dfdict[row]:
-                dfdict[row]['light_intensity'] = dflightint[str(
-                    dfdict[row]['time'])]
+                if str(dfdict[row]['time']) in dflightint:
+                    dfdict[row]['light_intensity'] = dflightint[str(
+                        dfdict[row]['time'])]
             dfbody.append(dfdict[row])
 
         df = pd.DataFrame(dfbody, columns=dfheader)
+
+        # Change specific columns to category type to save memory
         df[['name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']] = df[[
             'name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']].astype("category")
 
         for col in list(df):
             if df[col].dropna().size == 0:
                 df.drop(col, axis=1, inplace=True)
+                print('Empty column "{0}" was dropped'.format(col))
 
         return df

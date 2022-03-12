@@ -29,7 +29,7 @@ def plot_light(df=None):
     )
 
 
-def plot(df=None, param=None, *, avg=False):
+def plot(df=None, param=None, *, avg=False, days=[]):
     """Plot a single parameter over time in separate figures for each day.
 
     Plot a parameter, either for individual samples or as an average with standard-deviation
@@ -44,10 +44,14 @@ def plot(df=None, param=None, *, avg=False):
     if df is None:
         raise Exception('No DataFrame selected.')
 
-    days = int(ceil(df['time'].max()/24))
+    alldays = int(ceil(df['time'].max()/24))
 
-    for i in range(0, days):
-        df_tmp = df[(df['time'].between(i * 24, i * 24 + 24))]
+    for i in range(0, alldays):
+
+        if (len(days) > 0) & (i+1 not in days):
+            continue
+
+        df_tmp = df[(df['time'].between(i * 24, i * 24 + 23.9))][['name', 'time', param]].dropna()
 
         fig, ax = plt.subplots(figsize=(8, 5))
         for strain in df['name'].unique():
@@ -58,8 +62,8 @@ def plot(df=None, param=None, *, avg=False):
                     ['name', 'time'])[param]
 
                 ax.errorbar(x.agg('mean'), y.agg('mean'),
-                            yerr=y.agg('sem'), fmt='.-', markersize=10, capsize=4,
-                            elinewidth=1, label=strain)
+                            yerr=y.agg('sem'), fmt='.:', markersize=10, capsize=4,
+                            elinewidth=1, linewidth=.25, label=strain)
             else:
                 ax.scatter(
                     df_tmp[df_tmp['name'] == strain]['time'],

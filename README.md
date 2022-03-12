@@ -79,6 +79,12 @@ vppy.plot(df, 'phi2')
 
 ## Plot averaged values for samples for the parameter Phi2
 vppy.plot(df, 'phi2', avg=True)
+
+## Plot averaged values for samples for the parameter Phi2 only for two specific days
+vppy.plot(df, 'phi2', avg=True, days=[2,3])
+
+## Plot averaged values for samples Col-0 and Strain A
+vppy.plot(df[df['name'].isin(['Col-0','Strain A'])], 'phi2', avg=True)
 ```
 
 The light intensities defined and used in the experiment can be plotted in a single plot.

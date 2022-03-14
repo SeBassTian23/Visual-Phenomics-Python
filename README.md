@@ -85,6 +85,15 @@ vppy.plot(df, 'phi2', avg=True, days=[2,3])
 
 ## Plot averaged values for samples Col-0 and Strain A
 vppy.plot(df[df['name'].isin(['Col-0','Strain A'])], 'phi2', avg=True)
+
+## Plot heat map for the parameter Phi2
+vppy.heatmap(df, 'phi2')
+
+## Plot heat map for parameter Phi2 for samples Col-0 and Strain
+vppy.heatmap(df[df['name'].isin(['Col-0','Strain A'])], 'phi2')
+
+## Plot heat map for the parameter Phi2 only for two specific days
+vppy.heatmap(df, 'phi2', days=[2,3])
 ```
 
 The light intensities defined and used in the experiment can be plotted in a single plot.

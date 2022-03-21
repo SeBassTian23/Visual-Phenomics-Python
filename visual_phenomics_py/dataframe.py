@@ -3,7 +3,7 @@ Creates accessible dataframes from DEPI data files saved by Visual Phenomics.
 """
 
 import csv
-from numpy import nan
+from numpy import nan, isnan
 import os
 import pandas as pd
 import re
@@ -20,7 +20,7 @@ def dataframe(path=None):
     """
 
     if path is None:
-        raise Exception('Path not defined')
+        raise Exception('Path not defined.')
 
     paths = []
     if isinstance(path, str):
@@ -82,11 +82,19 @@ def dataframe(path=None):
                                     continue
 
                                 if (sample == '*light_intensity'):
-                                    if key not in dflightint or dflightint[key] is nan:
-                                        try:
-                                            dflightint[key] = float(value)
-                                        except:
-                                            dflightint[key] = nan
+
+                                    # check if time value is a number or nan
+                                    try:
+                                        value = float(value)
+                                    except:
+                                        value = nan
+
+                                    if str(key) not in dflightint:
+                                        dflightint[str(key)] = value
+
+                                    elif isnan(dflightint[str(key)]) & ~isnan(value):
+                                        dflightint[str(key)] = value
+
                                     continue
 
                                 # Create a dict entry for sample+time if it doesn't exist

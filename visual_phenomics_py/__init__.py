@@ -16,7 +16,8 @@ See :func:`~visual_phenomics_py.plot.plot_light`
 See the online readme for more information: https://github.com/SeBassTian23/Visual-Phenomics-Python
 """
 
-from visual_phenomics_py.dataframe import dataframe
+from visual_phenomics_py.dataframe import dataframe, save, load
+from visual_phenomics_py.export import to_txt
 from visual_phenomics_py.calculate import calculate, calculate_additional, calculate_custom
 from visual_phenomics_py.about import info, samples, description
 from visual_phenomics_py.plot import plot, plot_light, heatmap

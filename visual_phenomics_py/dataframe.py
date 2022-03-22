@@ -140,3 +140,47 @@ def dataframe(path=None):
                 print('Empty column "{0}" was dropped'.format(col))
 
         return df
+
+
+def save(df=None, path=None, compress='zip'):
+    """Save current DataFrame
+
+    Save the current DataFrame in the pickle format to avoid re-import and re-calculations.
+
+    :param df: DataFrame
+    :param path: the path to the directory where the DataFrame is saved (as dataframe.pkl).
+    :param compression: Compression algorithm (default: zip)
+    """
+
+    if df is None:
+        raise Exception('No DataFrame selected.')
+
+    if path is None or path is '':
+        raise Exception('Path not defined.')
+
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    filepath = os.path.join(path, 'dataframe.pkl')
+
+    df.to_pickle(filepath, compression=compress)
+
+
+def load(filepath=None, compress='zip'):
+    """Read saved DataFrame
+
+    Read a saved DataFrame from file. If you have selected a specific compression to save the DataFrame, make sure to provide the same when loading the DataFrame
+
+    :param df: DataFrame
+    :param path: the path to the file with the saved DataFrame.
+    :param compression: Compression algorithm (default: zip)
+    :returns: Dataframe
+    """
+
+    if filepath is None or filepath is '':
+        raise Exception('Filepath not defined.')
+
+    if not os.path.exists(filepath):
+        raise Exception('Filepath provided does not exist.')
+
+    return pd.read_pickle(filepath, compression=compress)

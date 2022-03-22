@@ -186,6 +186,48 @@ vppy.calculate_custom(df, 'CustomLEF', func, cols=['fmp', 'fs', 'light_intensity
 
 ```
 
+### Backup and Export
+
+The data represented inside the DataFrame can be exported back into individual text files, having the same format as the files provided by Visual Phenomics. The `to_txt` function for exporting is rather slow. The DataFrame itself can be saved using the `save` and also restored using the `load` functions. This is much faster than exporting the content to text files. 
+
+#### Export Parameters as Text Files
+
+Each column within the DataFrame can be exported (with some exceptions) into a textfile, that has the same format as the data files provided by Visual Phenomics.
+
+```py
+to_txt(df=None, folder=None, cols=[])
+```
+
+Examples:
+
+```py
+## Export all parameters
+vppy.to_txt(df, './export/')
+
+## Export specific parameters
+vppy.to_txt(df, './export/', cols=['phi2','fmp','fs'])
+```
+
+#### Save and Load a DataFrame
+
+The DataFrame can be saved to a file at any time and this file can also be loaded as a DataFrame.
+
+```py
+## To Save:
+save(df=None, path=None, compression='zip')
+
+## To Load:
+load(filepath=None, compression='zip')
+```
+
+```py
+## Save DataFrame
+vppy.save(df, './export')
+
+## Load DataFrame
+df = vppy.load('./export/dataframe.pkl')
+```
+
 [DataFrame]: http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html "DataFrame"
 
 [Python]: https://www.python.org/ "Python"

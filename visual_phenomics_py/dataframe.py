@@ -9,7 +9,7 @@ import pandas as pd
 import re
 
 
-def dataframe(path=None):
+def dataframe(path=None, prefix=None):
     """Build DataFrame from Visual Phenomics output.
 
     Get a DataFrame for an Experiment from a set of text files with calculated parameters.
@@ -38,7 +38,13 @@ def dataframe(path=None):
         dflightint = {}
 
         for f in files:
-            file_name = re.sub(r'^all', '', os.path.splitext(f)[0], 1)
+
+            if prefix is None:
+                prefix = r'^all'
+            else:
+                prefix = r'{0}'.format(prefix)
+
+            file_name = re.sub(prefix, '', os.path.splitext(f)[0], 1)
             file_ext = os.path.splitext(f)[1]
             if file_ext == '.txt':
                 # opening the CSV file

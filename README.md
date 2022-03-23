@@ -71,7 +71,7 @@ vppy.description(df)
 
 ### Plot Data
 
-This function allow to quickly plot a single parameter versus time. If needed, the values for each sample can be averaged and the standard deviation is indicated as well. Data for each day is displayed in a separate plot.
+This function allow to quickly plot a single parameter versus time. If needed, the values for each sample can be averaged and the standard deviation is indicated as well. If needed, also only specific days can be selected to be plotted.
 
 ```py
 ## Plot individual samples for the parameter Phi2

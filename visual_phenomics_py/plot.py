@@ -23,7 +23,7 @@ def plot_light(df=None):
     if 'light_intensity' not in df:
         raise Exception('No "light_intensity" column found.')
 
-    df.groupby(['time', 'light_intensity'])[['time', 'light_intensity']].agg('mean').plot(
+    df.drop_duplicates(['time', 'light_intensity'])[['time', 'light_intensity']].plot(
         kind='scatter',
         x='time',
         y='light_intensity',
@@ -32,10 +32,10 @@ def plot_light(df=None):
 
 
 def plot(df=None, param=None, *, avg=False, days=[]):
-    """Plot a single parameter over time in separate figures for each day.
+    """Plot a single parameter over time.
 
     Plot a parameter, either for individual samples or as an average with standard-deviation
-    for each sample name. Each day is represented in an individual figure.
+    for each sample name.
 
     :param df: DataFrame
     :param param: Fluorescence based parameter (e.g. phi2)
@@ -47,40 +47,61 @@ def plot(df=None, param=None, *, avg=False, days=[]):
     if df is None:
         raise Exception('No DataFrame selected.')
 
-    alldays = int(np.ceil(df['time'].max()/24))
+    df_tmp = df
 
-    for i in range(0, alldays):
+    if len(days) > 0:
+        
+        alltimes = df['time'].unique()
+        selectedtimes = np.array([])
 
-        if (len(days) > 0) & (i+1 not in days):
-            continue
+        for i in days:
+            idx = ( alltimes > ((i-1) * 24) )  * ( alltimes < ((i-1) * 24 + 23.9))
+            selectedtimes = np.append( selectedtimes, [ alltimes[n] for n in np.where(idx)] )
 
-        df_tmp = df[(df['time'].between(i * 24, i * 24 + 23.9))
-                    ][['name', 'time', param]].dropna()
+        df_tmp = df[ df['time'].isin(selectedtimes) ]
 
-        fig, ax = plt.subplots(figsize=(8, 5))
-        for strain in df['name'].unique():
-            if avg:
-                x = df_tmp[(df_tmp['name'] == strain)].groupby(
-                    ['name', 'time'])['time']
-                y = df_tmp[(df_tmp['name'] == strain)].groupby(
-                    ['name', 'time'])[param]
+    if avg:
+        pmean = df_tmp.groupby(['name','time'])[param].agg('mean').dropna()
+        psem =  df_tmp.groupby(['name','time'])[param].agg('sem').dropna()
 
-                ax.errorbar(x.agg('mean'), y.agg('mean'),
-                            yerr=y.agg('sem'), fmt='.:', markersize=10, capsize=4,
-                            elinewidth=1, linewidth=.25, label=strain)
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    for strain in df_tmp['name'].unique():
+
+        # Plot averages with standard deviation
+        if avg:
+            if strain not in pmean:
+                continue
+            
+            # if standard deviation calculation fails
+            # just fill an array with zeros to prevent
+            # errors
+            if strain not in psem:
+                yerror = np.repeat(0, len(pmean[strain].values))
             else:
-                ax.scatter(
-                    df_tmp[df_tmp['name'] == strain]['time'],
-                    df_tmp[df_tmp['name'] == strain][param],
-                    label=strain
-                )
+                yerror = psem[strain].values
 
-        ax.set_title('Day {0}'.format(i+1))
-        ax.set_xlabel('Time [h]')
-        ax.set_ylabel(param)
-        plt.legend()
-        plt.tight_layout()
-        plt.show()
+            ## Add plot
+            ax.errorbar(pmean[strain].index.get_level_values('time'), pmean[strain].values,
+                        yerr=yerror, fmt='.:', markersize=10, capsize=4,
+                        elinewidth=1, linewidth=.25, label=strain)
+        else:
+            ax.scatter(
+                df_tmp[df_tmp['name'] == strain]['time'],
+                df_tmp[df_tmp['name'] == strain][param],
+                label=strain,
+                s=10
+            )
+
+    if len(days) > 0:
+        ax.set_title('{0} - Day(s): {1}'.format(param, ", ".join(map(str, days)) ) )
+    else:
+        ax.set_title('{0}'.format(param ) )
+    ax.set_xlabel('Time [h]')
+    ax.set_ylabel(param)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 
 def heatmap(df=None, param='', days=[], cmap=None):

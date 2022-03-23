@@ -5,7 +5,7 @@ README_MD = open(join(dirname(abspath(__file__)), "README.md")).read()
 
 setup(
     name = "Visual-Phenomics-Py",
-    version = "1.4.0",
+    version = "1.4.1",
     packages = ['visual_phenomics_py'],
     test_suite = 'tests',
     install_requires = ['numpy', 'pandas', 'matplotlib'],

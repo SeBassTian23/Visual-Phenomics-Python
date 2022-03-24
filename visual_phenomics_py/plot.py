@@ -50,19 +50,20 @@ def plot(df=None, param=None, *, avg=False, days=[]):
     df_tmp = df
 
     if len(days) > 0:
-        
+
         alltimes = df['time'].unique()
         selectedtimes = np.array([])
 
         for i in days:
-            idx = ( alltimes > ((i-1) * 24) )  * ( alltimes < ((i-1) * 24 + 23.9))
-            selectedtimes = np.append( selectedtimes, [ alltimes[n] for n in np.where(idx)] )
+            idx = (alltimes > ((i-1) * 24)) * (alltimes < ((i-1) * 24 + 23.9))
+            selectedtimes = np.append(
+                selectedtimes, [alltimes[n] for n in np.where(idx)])
 
-        df_tmp = df[ df['time'].isin(selectedtimes) ]
+        df_tmp = df[df['time'].isin(selectedtimes)]
 
     if avg:
-        pmean = df_tmp.groupby(['name','time'])[param].agg('mean').dropna()
-        psem =  df_tmp.groupby(['name','time'])[param].agg('sem').dropna()
+        pmean = df_tmp.groupby(['name', 'time'])[param].agg('mean')
+        psem = df_tmp.groupby(['name', 'time'])[param].agg('sem')
 
     fig, ax = plt.subplots(figsize=(12, 8))
 
@@ -72,17 +73,28 @@ def plot(df=None, param=None, *, avg=False, days=[]):
         if avg:
             if strain not in pmean:
                 continue
-            
-            # if standard deviation calculation fails
-            # just fill an array with zeros to prevent
-            # errors
-            if strain not in psem:
-                yerror = np.repeat(0, len(pmean[strain].values))
-            else:
-                yerror = psem[strain].values
 
-            ## Add plot
-            ax.errorbar(pmean[strain].index.get_level_values('time'), pmean[strain].values,
+            # drop nan values for averages and replace stdev with
+            # 0 if it is a nan value
+            ptime = pmean[strain].index.get_level_values('time')
+
+            x = []
+            y = []
+            yerror = []
+
+            for idx, val in enumerate(pmean[strain].values):
+                if np.isnan(val):
+                    continue
+                else:
+                    x.append(ptime[idx])
+                    y.append(val)
+                    if np.isnan(psem[strain].values[idx]):
+                        yerror.append(0)
+                    else:
+                        yerror.append(psem[strain].values[idx])
+
+            # Add plot
+            ax.errorbar(x, y,
                         yerr=yerror, fmt='.:', markersize=10, capsize=4,
                         elinewidth=1, linewidth=.25, label=strain)
         else:
@@ -94,9 +106,10 @@ def plot(df=None, param=None, *, avg=False, days=[]):
             )
 
     if len(days) > 0:
-        ax.set_title('{0} - Day(s): {1}'.format(param, ", ".join(map(str, days)) ) )
+        ax.set_title('{0} - Day(s): {1}'.format(param,
+                                                ", ".join(map(str, days))))
     else:
-        ax.set_title('{0}'.format(param ) )
+        ax.set_title('{0}'.format(param))
     ax.set_xlabel('Time [h]')
     ax.set_ylabel(param)
     plt.legend()

@@ -31,7 +31,7 @@ def plot_light(df=None):
     )
 
 
-def plot(df=None, param=None, *, avg=False, days=[]):
+def plot(df=None, param=None, *, avg=False, err='sem' days=[]):
     """Plot a single parameter over time.
 
     Plot a parameter, either for individual samples or as an average with standard-deviation
@@ -39,7 +39,8 @@ def plot(df=None, param=None, *, avg=False, days=[]):
 
     :param df: DataFrame
     :param param: Fluorescence based parameter (e.g. phi2)
-    :param avg: average with standard-deviation (default: False)
+    :param avg: average with error (default: False)
+    :param err: error indication, "sem" standard error  or "std" standard deviation (default: sem)
     :param days: list with the days to plot (e.g. [1,3] for day 1 and 3)
     :returns: Plot
     """
@@ -63,7 +64,7 @@ def plot(df=None, param=None, *, avg=False, days=[]):
 
     if avg:
         pmean = df_tmp.groupby(['name', 'time'])[param].agg('mean')
-        psem = df_tmp.groupby(['name', 'time'])[param].agg('sem')
+        psem = df_tmp.groupby(['name', 'time'])[param].agg(err)
 
     fig, ax = plt.subplots(figsize=(12, 8))
 

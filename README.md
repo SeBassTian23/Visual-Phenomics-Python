@@ -79,11 +79,20 @@ vppy.description(df)
 This function allow to quickly plot a single parameter versus time. If needed, the values for each sample can be averaged and the standard deviation is indicated as well. If needed, also only specific days can be selected to be plotted.
 
 ```py
+plot(df=None, param=None, *, avg=False, err='sem' days=[])
+```
+
+Examples for plotting:
+
+```py
 ## Plot individual samples for the parameter Phi2
 vppy.plot(df, 'phi2')
 
 ## Plot averaged values for samples for the parameter Phi2
 vppy.plot(df, 'phi2', avg=True)
+
+## Plot averaged values for samples for the parameter Phi2 with standard deviation
+vppy.plot(df, 'phi2', avg=True, err='std')
 
 ## Plot averaged values for samples for the parameter Phi2 only for two specific days
 vppy.plot(df, 'phi2', avg=True, days=[2,3])

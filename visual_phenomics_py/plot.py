@@ -31,7 +31,7 @@ def plot_light(df=None):
     )
 
 
-def plot(df=None, param=None, *, avg=False, err='sem' days=[]):
+def plot(df=None, param=None, *, avg=False, err='sem', days=[]):
     """Plot a single parameter over time.
 
     Plot a parameter, either for individual samples or as an average with standard-deviation

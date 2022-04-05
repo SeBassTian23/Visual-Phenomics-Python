@@ -58,7 +58,7 @@ def sphinpq(phi2, phinot, ql, phinoopt=0.2, fmf0=4.88):
     :param fmf0: Fv/Fm (default: 4.88)
     :returns: SPhiNPQ (float)
     """
-    return 1 - ((phi2 * 1 / (1 + phi2 * (1/phinoopt - 1/phinot) / (ql * fmf0)))+fmf0)
+    return 1 - ((phi2 * 1 / (1 + phi2 * (1/phinoopt - 1/phinot) / (ql * fmf0)))+phinoopt)
 
 
 def deltanpq(phino, phinoopt=0.2):

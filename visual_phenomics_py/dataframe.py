@@ -29,7 +29,7 @@ def dataframe(path=None, prefix=None):
     elif isinstance(path, list):
         paths += path
 
-    for p in paths:
+    for idx, p in enumerate(paths):
         files = os.listdir(p)
 
         dfheader = ['sample', 'name', 'time', 'light_intensity']
@@ -134,18 +134,30 @@ def dataframe(path=None, prefix=None):
                         dfdict[row]['time'])]
             dfbody.append(dfdict[row])
 
-        df = pd.DataFrame(dfbody, columns=dfheader)
+        dfTMP = pd.DataFrame(dfbody, columns=dfheader)
 
         # Change specific columns to category type to save memory
-        df[['name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']] = df[[
-            'name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']].astype("category")
+        categories = ['name', 'sample', 'position', 'flat', 'experiment', 'camera', 'replicate']
 
-        for col in list(df):
-            if df[col].dropna().size == 0:
-                df.drop(col, axis=1, inplace=True)
+        # Add folder column and category
+        if len(paths) > 1:
+            dfTMP['folder'] = p
+            categories += ['folder']
+
+        dfTMP[categories] = dfTMP[categories].astype("category")
+
+        for col in list(dfTMP):
+            if dfTMP[col].dropna().size == 0:
+                dfTMP.drop(col, axis=1, inplace=True)
                 print('Empty column "{0}" was dropped'.format(col))
 
-        return df
+        # Add initial dataframe or append if multiple are present
+        if idx == 0:
+            df = dfTMP
+        else:
+            df = df.append(dfTMP, ignore_index=True)
+
+    return df
 
 
 def save(df=None, path=None, compress='zip'):

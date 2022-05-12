@@ -35,7 +35,7 @@ Import Examples:
 
 ```py
 ## Import files from a single folder
-vppy.dataframe('./path/to/experiment-data')
+df = vppy.dataframe('./path/to/experiment-data')
 
 ## Import files from a single folder and remove prefix (e.g. MyData_phi2.txt)
 df = vppy.dataframe('./path/to/experiment-data', prefix="MyData_")
@@ -133,7 +133,7 @@ Examples for calculations:
 
 ```py
 # Calculating Phi2
-vppy.calculate_additional(df,'Phi2')
+vppy.calculate(df,'Phi2')
 
 # Calculating Phi2 and redefine the used column names
 vppy.calculate(df,'Phi2', fmp='FMP')

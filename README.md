@@ -44,6 +44,8 @@ df = vppy.dataframe('./path/to/experiment-data', prefix="MyData_")
 df = vppy.dataframe(['./path/to/experiment_01','./path/to/experiment_02'])
 ```
 
+**Note:** When importing multiple folders, an additional categorical column will be added to the dataframe named `folder` which contains the import paths and allow to distinguish the data from individual folders.
+
 ## Additional Functions
 
 ### Dataframe Info

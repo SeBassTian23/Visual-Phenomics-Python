@@ -206,12 +206,12 @@ def calculate_additional(df=None, param='', *, v_phino='PhiNOt', v_phi2='Phi2', 
                         'Missing parameter(s). Define columns for v_phi2 and v_par')
 
             elif param == 'Vx':
-                if {v_phino, v_phi2}.issubset(df.columns):
+                if {v_phino, v_phi2, v_par}.issubset(df.columns):
                     df.at[row.Index, alias or param] = vx(
-                        getattr(row, v_phino), getattr(row, v_phi2), absorptivity)
+                        getattr(row, v_phino), getattr(row, v_phi2), getattr(row, v_par), absorptivity)
                 else:
                     raise Exception(
-                        'Missing parameter(s). Define columns for v_phino and v_phi2')
+                        'Missing parameter(s). Define columns for v_phino, v_phi2, and v_par')
 
             elif param == 'SPhi2':
                 if {v_phino, v_phi2, v_ql}.issubset(df.columns):

@@ -18,17 +18,18 @@ def lef(phi2, par, absorptivity=0.5):
     return phi2 * absorptivity * par
 
 
-def vx(phinot, ql, absorptivity=0.5):
+def vx(phinot, ql, par, absorptivity=0.5):
     """Calculate Vx
 
-    Vx = phinot * absorptivity * (1-ql)
+    Vx = phinot * absorptivity * (1-ql) * PAR
 
     :param phinot: PhiNOt
     :param ql: qL
+    :param par: Light Intensity in µE×s⁻¹×m⁻² (PAR)
     :param absorptivity: Leaf absorbtivity (default 0.5)
     :returns: Vx (float)
     """
-    return phinot * absorptivity * (1-ql)
+    return phinot * absorptivity * (1-ql) * par
 
 
 def sphi2(phi2, phinot, ql, phinoopt=0.2, fmf0=4.88):

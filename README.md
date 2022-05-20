@@ -76,6 +76,22 @@ This function returns a worded description of the DataFrame content in regards t
 vppy.description(df)
 ```
 
+### Formatted Column Labels
+
+The DataFrame column names can be returned as a formatted string to be used in matplotlib plots.
+
+```py
+## Return a formatted string
+vppy.label('phi2') 
+
+### returns the string '$\Phi_{II}$'
+
+## Return a formatted string
+vppy.label('phi2', {'phi2': 'Y(II)' }) 
+
+### returns the string 'Y(II)'
+```
+
 ### Plot Data
 
 This function allow to quickly plot a single parameter versus time. If needed, the values for each sample can be averaged and the standard deviation is indicated as well. If needed, also only specific days can be selected to be plotted.

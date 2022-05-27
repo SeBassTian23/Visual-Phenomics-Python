@@ -5,6 +5,7 @@ text file format
 
 import os
 import csv
+import numpy as np
 
 
 def to_txt(df=None, folder=None, cols=[]):

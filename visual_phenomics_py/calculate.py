@@ -2,8 +2,8 @@
 Calculate additional parameters or recalculate parameters.
 """
 
-from visual_phenomics_py.parameters import *
-from visual_phenomics_py.parameters_additional import *
+from visual_phenomics_py.util.parameters import fvfm, npq, npqt, phi2, phino, phinot, phinpq, phinpqt, qe, qesv, qet, qi, qit, ql, qp
+from visual_phenomics_py.util.parameters_additional import lef, vx, sphi2, sphinpq
 
 
 def calculate(df=None, param='', *, fm='fm', f0='f0', fmp='fmp', f0p='f0p', fs='fs', fmpp='fmpp', f0pp='f0pp', fmf0=4.88, alias=None):

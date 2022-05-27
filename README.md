@@ -42,6 +42,10 @@ df = vppy.dataframe('./path/to/experiment-data', prefix="MyData_")
 
 ## Import files from multiple folders
 df = vppy.dataframe(['./path/to/experiment_01','./path/to/experiment_02'])
+
+## Import files from multiple folders and remove different prefixes
+## The string handed to prefix is parsed as a regular expression.
+df = vppy.dataframe(['./path/to/experiment_01','./path/to/experiment_02'], prefix="MyData01_|MyData02_")
 ```
 
 **Note:** When importing multiple folders, an additional categorical column will be added to the dataframe named `folder` which contains the import paths and allow to distinguish the data from individual folders.
@@ -217,6 +221,20 @@ def func( fmp, fs, light, absorptivity=0.5 ):
 vppy.calculate_custom(df, 'CustomLEF', func, cols=['fmp', 'fs', 'light_intensity'], params={'absorptivity': 0.45} )
 
 ```
+
+#### Utilities
+
+Using the `util` sub-module, the functions used to calculate values for the whole dataframe, can be used to make calculations for an individual value.
+
+```py
+## Calculating Phi2 for a single set of Fm' and and Fs values 
+phi2 = vppy.util.phi2( 1300 , 669) #returns 0.486
+
+## Now calculating the LEF parameter using the previously calculated Phi2 and the light intensity
+lef = vppy.util.lef(phi2, 500) # returns 121.5
+```
+
+Currently the functions, `fvfm`, `npq`, `npqt`, `phi2`, `phino`, `phinot`, `phinpq`, `phinpqt`, `qe`, `qesv`, `qet`, `qi`, `qit`, `ql`, `qp`, and `lef` are available in the `util` sub-module.
 
 ### Backup and Export
 

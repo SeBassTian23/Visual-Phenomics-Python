@@ -23,3 +23,4 @@ from visual_phenomics_py.calculate import calculate, calculate_additional, calcu
 from visual_phenomics_py.about import info, samples, description
 from visual_phenomics_py.plot import plot, plot_light, heatmap
 from visual_phenomics_py.labels import label
+import visual_phenomics_py.util as util

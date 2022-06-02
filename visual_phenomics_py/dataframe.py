@@ -155,7 +155,7 @@ def dataframe(path=None, prefix=None):
         if idx == 0:
             df = dfTMP
         else:
-            df = df.append(dfTMP, ignore_index=True)
+            df = pd.concat([df, dfTMP], sort=False, ignore_index=True)
 
     return df
 

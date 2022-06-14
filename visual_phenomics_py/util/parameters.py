@@ -59,7 +59,7 @@ def phi2(fmp, fs):
 def phino(fmp, fs, f0p, fm, f0):
     """Calculate PhiNO
 
-    PhiNO = 1 / (npqt + (1 + (ql * ((fm/f0)-1)))
+    PhiNO = 1 / (npq + (1 + (ql * ((fm/f0)-1)))
 
     :param fmp: Fm'
     :param fs: Fs

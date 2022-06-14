@@ -12,7 +12,7 @@ pip install git+https://github.com/SeBassTian23/Visual-Phenomics-Python.git --up
 Install package from local source by downloading the package and installing it manually using the command below.
 
 ```bash
-python setup.py install --user
+python install .
 ```
 
 ***
@@ -196,7 +196,7 @@ vppy.calculate_additional(df,'LEF', alias='PPFD')
 It also allows to create custom functions and apply the calculations to a dataframe column.
 
 ```py
-calculate_custom(df=None, name='', fn=None , *, cols=[], params={})
+calculate_custom(df=None, name='', fn=None , *, cols=[], fill=[], params={})
 ```
 
 Examples for calculations:
@@ -220,6 +220,14 @@ def func( fmp, fs, light, absorptivity=0.5 ):
 
 vppy.calculate_custom(df, 'CustomLEF', func, cols=['fmp', 'fs', 'light_intensity'], params={'absorptivity': 0.45} )
 
+## Function requiring values from columns that doesn't contain a value for every timepoint.
+## In this case FM and F0 are only available for the first timepoint and the nan values are
+## filled using the pandas fillan(method-"ffill") function. The fill is temporary and only
+## available during the calculation.
+def func( npq, ql, fm, f0 ):
+  return 1 / (npq + (1 + (ql * ((fm/f0)-1)))
+
+vppy.calculate_custom(df, 'CustomPhiNO', func, cols=['npq', 'ql', 'fm', 'f0'], fill=['fm','f0']
 ```
 
 #### Utilities

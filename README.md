@@ -12,7 +12,7 @@ pip install git+https://github.com/SeBassTian23/Visual-Phenomics-Python.git --up
 Install package from local source by downloading the package and installing it manually using the command below.
 
 ```bash
-python install .
+pip install .
 ```
 
 ***

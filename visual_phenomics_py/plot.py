@@ -118,7 +118,7 @@ def plot(df=None, param=None, *, avg=False, err='sem', days=[]):
     plt.show()
 
 
-def heatmap(df=None, param='', days=[], cmap=None):
+def heatmap(df=None, param='', days=[], cmap=None, column='name'):
     """Plot parameter as a heat map
 
     Plot a parameter as a phenotype-over-time heat map. Samples are avagered and represented as one row in the heat map.
@@ -126,11 +126,22 @@ def heatmap(df=None, param='', days=[], cmap=None):
     :param df: DataFrame
     :param param: Fluorescence based parameter (e.g. phi2)
     :param days: list with the days to plot (e.g. [1,3] for day 1 and 3)
-    :param cmap: matplotlib colormap 
+    :param cmap: matplotlib colormap
+    :param column: column used to group the measurements (default: name)
     :returns: Plot
     """
-    alldays = int(np.ceil(df['time'].max()/24))
-    strains = df['name'].unique()
+
+    if df is None:
+        raise Exception('No DataFrame selected.')
+
+    if column is None or type(column) is not str:
+        raise Exception('Selected column needs to be a string.')
+
+    if column not in df.columns:
+        raise Exception('No column or non existing column selected to group measurements.')
+
+    alldays = int(df['day'].max())
+    strains = df[column].unique()
 
     if len(days) == 0:
         days = range(1, alldays+1)
@@ -138,8 +149,12 @@ def heatmap(df=None, param='', days=[], cmap=None):
     if cmap is None:
         cmap = cm.rainbow
 
-    fig, axes = plt.subplots(1, len(days), figsize=(
-        12, (int(np.ceil(len(strains) / 3))) + 0.2), sharey=True)
+    height = (int(np.ceil(len(strains) / 3)))
+
+    if height < 2:
+        height = 2
+
+    fig, axes = plt.subplots(1, len(days), figsize=(12, height), sharey=True)
 
     if len(days) > 1:
         ax = axes.flat
@@ -147,18 +162,12 @@ def heatmap(df=None, param='', days=[], cmap=None):
 
     ranges = []
 
-    for i in range(0, alldays):
+    df_range = df[df['day'].isin(days)][[column, 'time', param]]
 
-        if (len(days) > 0) & (i+1 not in days):
-            continue
-
-        df_range = df[(df['time'].between(0, i * 24 + 23.9))
-                      ][['name', 'time', param]].dropna()
-
-        ranges.append(df_range.groupby(['name', 'time'])[
-                      param].agg('mean').dropna().min())
-        ranges.append(df_range.groupby(['name', 'time'])[
-                      param].agg('mean').dropna().max())
+    ranges.append(df_range.groupby([column, 'time'])[
+                    param].agg('mean').min())
+    ranges.append(df_range.groupby([column, 'time'])[
+                    param].agg('mean').max())
 
     ranges = np.array(ranges)
 
@@ -167,17 +176,13 @@ def heatmap(df=None, param='', days=[], cmap=None):
         if (len(days) > 0) & (i+1 not in days):
             continue
 
-        df_tmp = df[(df['time'].between(i * 24, i * 24 + 23.9))
-                    ][['name', 'time', param]].dropna()
+        df_tmp = df[(df['day'] == (i+1))].groupby(
+                [column, 'time'])[param].agg('mean')
 
         heatmap = []
 
         for strain in strains:
-
-            y = df_tmp[(df_tmp['name'] == strain)].groupby(
-                ['name', 'time'])[param].agg('mean').dropna()
-
-            heatmap.append(np.array(y))
+            heatmap.append(np.array(df_tmp[strain].values, dtype=float))
 
         if len(days) == 1:
             axis = axes
@@ -203,10 +208,10 @@ def heatmap(df=None, param='', days=[], cmap=None):
     plt.tight_layout()
 
     # now add the colorbar
-    fig.subplots_adjust(bottom=0.2)
+    fig.subplots_adjust(bottom= (0.65 / height) )
 
     # Create a new axis to contain the color bar
-    cbar_ax = fig.add_axes([0.3, 0.05, 0.4, 0.05])
+    cbar_ax = fig.add_axes([0.3, 0, 0.4,  (0.2 / height) ])
     norm = colors.Normalize(vmin=ranges.min(), vmax=ranges.max())
     plt.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap),
                  cax=cbar_ax, orientation='horizontal', label=param)

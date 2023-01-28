@@ -2,6 +2,7 @@
 Get info from the DataFrame with Visual Phenomics data. 
 """
 
+import pkg_resources
 
 def info(df=None):
     """Print DataFrame Information.
@@ -58,3 +59,9 @@ def description(df=None):
         folders
     )
     print(description)
+
+
+def version():
+    """Return Package Version
+    """
+    return pkg_resources.require("visual_phenomics_py")[0].version

@@ -4,7 +4,7 @@ Build timeline for standard protocol
 
 import numpy as np
 
-def protocol_StdTiming(offset=0, hours=16, protocol=None):
+def protocol_std_timing(offset=0, hours=16, protocol=None):
     """Generate timing columns for standard DEPI protocols
 
     Generate the measurement times for a standard DEPI protocol. The available protocols are for a flat day
@@ -59,7 +59,7 @@ def vp_file_header(timing=None, initCol=True):
     """
 
     if timing is None:
-        raise Exception('Timing must be genereated using "protocol_StdTiming" function or a list of float values.')
+        raise Exception('Timing must be genereated using "protocol_std_timing" function or a list of float values.')
 
     if not isinstance(initCol, bool):
         raise Exception('initCol must be boolean (default is True).')

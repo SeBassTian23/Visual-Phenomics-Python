@@ -173,7 +173,7 @@ def save(df=None, path=None, compress='zip'):
     if df is None:
         raise Exception('No DataFrame selected.')
 
-    if path is None or path is '':
+    if path is None or path == '':
         raise Exception('Path not defined.')
 
     if not os.path.exists(path):
@@ -195,7 +195,7 @@ def load(filepath=None, compress='zip'):
     :returns: Dataframe
     """
 
-    if filepath is None or filepath is '':
+    if filepath is None or filepath == '':
         raise Exception('Filepath not defined.')
 
     if not os.path.exists(filepath):

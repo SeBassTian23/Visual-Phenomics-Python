@@ -250,6 +250,19 @@ lef = vppy.util.lef(phi2, 500) # returns 121.5
 
 Currently the functions, `fvfm`, `npq`, `npqt`, `phi2`, `phino`, `phinot`, `phinpq`, `phinpqt`, `qe`, `qesv`, `qet`, `qi`, `qit`, `ql`, `qp`, and `lef` are available in the `util` sub-module.
 
+##### Protocol Timing
+
+The timing of DEPI protocols can fluctuate by seconds or fractions of seconds, which is reflected in the timing information in the Visual Phenomics output. In order to correct the fluctuations and allow easier comparison between experiments the original protocol timing can be generated.
+
+```py
+## Generate Timing for standard DEPI protocol
+vppy.util.protocol_StdTiming(offset=0, hours=16, protocol=None)
+
+## Generate header line for file output by Visual Phenomics
+vppy.util.vp_file_header(timing=None, initCol=True)
+```
+
+
 ### Backup and Export
 
 The data represented inside the DataFrame can be exported back into individual text files, having the same format as the files provided by Visual Phenomics. The `to_txt` function for exporting is rather slow. The DataFrame itself can be saved using the `save` and also restored using the `load` functions. This is much faster than exporting the content to text files. 

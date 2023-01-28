@@ -225,9 +225,9 @@ vppy.calculate_custom(df, 'CustomLEF', func, cols=['fmp', 'fs', 'light_intensity
 ## filled using the pandas fillan(method-"ffill") function. The fill is temporary and only
 ## available during the calculation.
 def func( npq, ql, fm, f0 ):
-  return 1 / (npq + (1 + (ql * ((fm/f0)-1)))
+  return 1 / (npq + (1 + (ql * ((fm/f0)-1))))
 
-vppy.calculate_custom(df, 'CustomPhiNO', func, cols=['npq', 'ql', 'fm', 'f0'], fill=['fm','f0']
+vppy.calculate_custom(df, 'CustomPhiNO', func, cols=['npq', 'ql', 'fm', 'f0'], fill=['fm','f0'])
 ```
 
 #### Utilities

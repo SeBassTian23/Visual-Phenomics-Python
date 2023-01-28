@@ -255,13 +255,47 @@ Currently the functions, `fvfm`, `npq`, `npqt`, `phi2`, `phino`, `phinot`, `phin
 The timing of DEPI protocols can fluctuate by seconds or fractions of seconds, which is reflected in the timing information in the Visual Phenomics output. In order to correct the fluctuations and allow easier comparison between experiments the original protocol timing can be generated.
 
 ```py
-## Generate Timing for standard DEPI protocol
-vppy.util.protocol_StdTiming(offset=0, hours=16, protocol=None)
+## Generate Timing for standard DEPI sinusoidal 16h protocol
+vppy.util.protocol_std_timing(protocol='sinusoidal')
 
-## Generate header line for file output by Visual Phenomics
-vppy.util.vp_file_header(timing=None, initCol=True)
+## Generate Timing for standard DEPI sinusoidal 12h protocol
+vppy.util.protocol_std_timing(hours=12, protocol='sinusoidal')
+
+## Generate Timing for standard DEPI sinusoidal 12h protocol offset by 24h (2nd day)
+vppy.util.protocol_std_timing(offset=24, hours=12, protocol='sinusoidal')
+
+## Generate Timing for standard 16h day DEPI protocol consisting of a 
+## flat, sinusoidal, fluctuating, flat and fluctuating day.
+arr = np.concatenate(
+  [
+    vppy.util.protocol_std_timing(offset=0, protocol='flat'),
+    vppy.util.protocol_std_timing(offset=24, protocol='sinusoidal'),
+    vppy.util.protocol_std_timing(offset=48, protocol='fluctuating'),
+    vppy.util.protocol_std_timing(offset=72, protocol='flat'),
+    vppy.util.protocol_std_timing(offset=96, protocol='fluctuating')
+  ],
+  axis=0
+)
+
+## Generate Timing for standard 16h day DEPI protocol for parameters collected
+## in the dark at the beginning of a day.
+arr_dark = np.concatenate(
+  [
+    vppy.util.protocol_std_timing(offset=0, protocol='dark'),
+    vppy.util.protocol_std_timing(offset=24, protocol='dark'),
+    vppy.util.protocol_std_timing(offset=48, protocol='dark'),
+    vppy.util.protocol_std_timing(offset=72, protocol='dark'),
+    vppy.util.protocol_std_timing(offset=96, protocol='dark')
+  ],
+  axis=0
+)
+
+## Generate header line for output files by Visual Phenomics
+vppy.util.vp_file_header(arr, initCol=True) # returns: name[position][flat][experiment][camera][replicate] 0.000  1.000  2.000...
+
+## Generate header line for output files by Visual Phenomics
+vppy.util.vp_file_header(arr_dark, initCol=False) # returns: 0.000  24.000  48.000  72.000  96.000
 ```
-
 
 ### Backup and Export
 

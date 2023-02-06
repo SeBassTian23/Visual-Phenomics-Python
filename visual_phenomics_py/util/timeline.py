@@ -31,17 +31,21 @@ def protocol_std_timing(offset=0, hours=16, protocol=None):
 
     if protocol == 'flat':
         steps = hours
-        timing = np.arange(0, hours, (hours/steps)) + offset
+        stepsize = hours/steps
+        timing = np.arange(stepsize, hours+stepsize, (hours/steps)) + offset
 
     if protocol == 'sinusoidal':
         steps = hours * 2
-        timing = np.arange(0, hours, (hours/steps)) + offset
+        stepsize = hours/steps
+        timing = np.arange(stepsize, hours+stepsize, (hours/steps)) + offset
 
     if protocol == 'fluctuating':
         steps = hours * 4
+        stepsize = hours/steps
+        stepsize = (hours/steps)
         duration = 0.0833
-        timing = np.arange(0, hours, (hours/steps)).tolist()
-        timing = [x - duration if x in timing[1::2] else x for x in timing]
+        timing = np.arange(stepsize, hours+stepsize, (hours/steps)).tolist()
+        timing = [x + duration if x in timing[0::2] else x for x in timing]
         timing = np.array(timing) + offset
 
     return timing.astype(float)

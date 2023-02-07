@@ -27,7 +27,8 @@ def plot_light(df=None):
         kind='scatter',
         x='time',
         y='light_intensity',
-        title='Light Intensities'
+        title='Light Intensities',
+        figsize=(15,5)
     )
 
 

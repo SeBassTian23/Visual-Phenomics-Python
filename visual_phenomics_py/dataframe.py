@@ -3,7 +3,7 @@ Creates accessible dataframes from DEPI data files saved by Visual Phenomics.
 """
 
 import csv
-from numpy import nan, isnan
+from numpy import nan, isnan, ceil
 import os
 import pandas as pd
 import re
@@ -156,6 +156,25 @@ def dataframe(path=None, prefix=None):
             df = dfTMP
         else:
             df = pd.concat([df, dfTMP], sort=False, ignore_index=True)
+
+        # Get the maximum number of days from the experiment time
+        days = int( ceil( df['time'].max() / 24 ) )
+        if df['time'].max() % 24 == 0:
+            days = days + 1
+
+        ## Fill columns with NaN to start with
+        df['day'] = nan
+        df['hours_day'] = nan
+
+        ## Go through data by day
+        for col in range(0, days):
+            ## unique times for the day
+            times = df[(df['time'] >= col * 24) & (df['time'] < col * 24 +24)]['time'].unique()
+            for row in df[(df['time'] >= col * 24) & (df['time'] < col * 24 +24)].itertuples():
+                ## Add day
+                df.at[row.Index, 'day'] = int(col+1)
+                ## Add day_hour
+                df.at[row.Index, 'hours_day'] = round( getattr(row, 'time') - (col * 24), 4 )
 
     return df
 

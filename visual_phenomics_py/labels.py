@@ -6,8 +6,8 @@ text file format
 LABELS_FORMATTED = {
   'f0': r'$F_{0}$',
   'fm': r'$F_{M}$',
-  'fmp': r'$F_{M}\'$',
-  'fmpp': r'$F_{M}\'\'$',
+  'fmp': r'$F_{M}\lq$',
+  'fmpp': r'$F_{M}\lq\lq$',
   'fmt': r'$F_{Mt}$',
   'fs': r'$F_{S}$',
   'fvfm': r'$\frac{F_{V}}{F_{M}}$',

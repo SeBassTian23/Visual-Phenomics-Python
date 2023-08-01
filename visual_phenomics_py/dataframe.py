@@ -57,54 +57,61 @@ def dataframe(path=None, prefix=None):
                     sampleNameHeader = 'name[position][flat][experiment][camera][replicate]'
                     sampleNameHeaderOld = 'name[flat][experiment][camera][replicate]'
 
-                    # check if file content is correct
-                    if (sampleNameHeader not in csvFile.fieldnames) & (sampleNameHeaderOld not in csvFile.fieldnames):
-                        print('File "{0}" has the wrong format.'.format(f))
+                    # Get the header from the first column
+                    sampleNameHeaderUse = str(csvFile.fieldnames[0])
 
-                    else:
-                        # add column header
-                        dfheader.append(file_name)
-
-                        # get sample name header
+                    # New Header format
+                    if (sampleNameHeader in csvFile.fieldnames):
                         sampleNameHeaderUse = sampleNameHeader
-                        if sampleNameHeader not in csvFile.fieldnames:
-                            sampleNameHeaderUse = sampleNameHeaderOld
 
-                        # looping through the rows in the csv file
-                        for lines in csvFile:
+                    # Old sample header format
+                    elif (sampleNameHeader not in csvFile.fieldnames) & (sampleNameHeaderOld in csvFile.fieldnames):
+                        sampleNameHeaderUse = sampleNameHeaderOld
 
-                            # get the sample name
-                            sample = lines[sampleNameHeaderUse]
+                    # Not matching the standard header format
+                    else:
+                        print('File "{0}" does not support the standard annotation format, falling back to simple import.'.format(f))
 
-                            # if the sample name is empty or null, skip the row
-                            if (sample[0] == '[') or (re.match(r'^null', sample)):
+                    # add column header
+                    dfheader.append(file_name)
+
+                    # looping through the rows in the csv file
+                    for lines in csvFile:
+
+                        # get the sample name
+                        sample = lines[sampleNameHeaderUse]
+
+                        # if the sample name is empty or null, skip the row
+                        if (sample[0] == '[') or (re.match(r'^null', sample)):
+                            continue
+
+                        # get all items
+                        for key, value in lines.items():
+
+                            # Skip the first row
+                            if (key == sampleNameHeaderUse):
                                 continue
 
-                            # get all items
-                            for key, value in lines.items():
+                            if (sample == '*light_intensity'):
 
-                                # Skip the first row
-                                if (key == sampleNameHeaderUse):
-                                    continue
+                                # check if time value is a number or nan
+                                try:
+                                    value = float(value)
+                                except:
+                                    value = nan
 
-                                if (sample == '*light_intensity'):
+                                if str(key) not in dflightint:
+                                    dflightint[str(key)] = value
 
-                                    # check if time value is a number or nan
-                                    try:
-                                        value = float(value)
-                                    except:
-                                        value = nan
+                                elif isnan(dflightint[str(key)]) & ~isnan(value):
+                                    dflightint[str(key)] = value
 
-                                    if str(key) not in dflightint:
-                                        dflightint[str(key)] = value
+                                continue
 
-                                    elif isnan(dflightint[str(key)]) & ~isnan(value):
-                                        dflightint[str(key)] = value
+                            # Create a dict entry for sample+time if it doesn't exist
+                            if sample+key not in dfdict:
 
-                                    continue
-
-                                # Create a dict entry for sample+time if it doesn't exist
-                                if sample+key not in dfdict:
+                                if (sampleNameHeader in csvFile.fieldnames) | (sampleNameHeaderOld in csvFile.fieldnames):
                                     meta = re.findall(
                                         r"\[(.*?)\]", sample)
 
@@ -117,12 +124,15 @@ def dataframe(path=None, prefix=None):
                                     dfdict[sample+key] = {'name': sample.split('[')[0], 'sample': sample, 'light_intensity': nan, 'time': float(
                                         key), 'position': meta[0], 'flat': meta[1], 'experiment': meta[2], 'camera': meta[3], 'replicate': meta[4]}
 
-                                # Add nan if float value parsing fails
-                                try:
-                                    dfdict[sample +
-                                           key][file_name] = float(value)
-                                except:
-                                    dfdict[sample+key][file_name] = nan
+                                else:
+                                    dfdict[sample+key] = {'name': sample, 'sample': sample, 'light_intensity': nan, 'time': float(key)}
+
+                            # Add nan if float value parsing fails
+                            try:
+                                dfdict[sample +
+                                        key][file_name] = float(value)
+                            except:
+                                dfdict[sample+key][file_name] = nan
 
         dfheader += ['position', 'flat',
                      'experiment', 'camera', 'replicate']

@@ -13,6 +13,8 @@ def plot_light(df=None):
 
     Light intensities plotted over time in a single figure.
 
+    Requires the columns 'light_intensity' and 'time'.
+
     :param df: DataFrame
     :returns: Plot
     """
@@ -20,8 +22,9 @@ def plot_light(df=None):
     if df is None:
         raise Exception('No DataFrame selected.')
 
-    if 'light_intensity' not in df:
-        raise Exception('No "light_intensity" column found.')
+    for col in ['light_intensity', 'time']:
+        if col not in df:
+            raise Exception('Column "%s" is required but not found.' % col)
 
     df.drop_duplicates(['time', 'light_intensity'])[['time', 'light_intensity']].plot(
         kind='scatter',
@@ -38,6 +41,8 @@ def plot(df=None, param=None, *, avg=False, err='sem', days=[]):
     Plot a parameter, either for individual samples or as an average with standard-deviation
     for each sample name.
 
+    Requires the columns 'name' and 'time'.
+
     :param df: DataFrame
     :param param: Fluorescence based parameter (e.g. phi2)
     :param avg: average with error (default: False)
@@ -48,6 +53,10 @@ def plot(df=None, param=None, *, avg=False, err='sem', days=[]):
 
     if df is None:
         raise Exception('No DataFrame selected.')
+    
+    for col in ['name', 'time']:
+        if col not in df:
+            raise Exception('Column "%s" is required but not found.' % col)
 
     df_tmp = df
 
@@ -124,6 +133,8 @@ def heatmap(df=None, param='', days=[], cmap=None, column='name'):
 
     Plot a parameter as a phenotype-over-time heat map. Samples are avagered and represented as one row in the heat map.
 
+    Requires the columns 'day' and 'time'.
+
     :param df: DataFrame
     :param param: Fluorescence based parameter (e.g. phi2)
     :param days: list with the days to plot (e.g. [1,3] for day 1 and 3)
@@ -140,6 +151,10 @@ def heatmap(df=None, param='', days=[], cmap=None, column='name'):
 
     if column not in df.columns:
         raise Exception('No column or non existing column selected to group measurements.')
+    
+    for col in ['day', 'time']:
+        if col not in df:
+            raise Exception('Column "%s" is required but not found.' % col)
 
     alldays = int(df['day'].max())
     strains = df[column].unique()

@@ -9,7 +9,9 @@ from visual_phenomics_py.util.parameters_additional import lef, vx, sphi2, sphin
 def calculate(df=None, param='', *, fm='fm', f0='f0', fmp='fmp', f0p='f0p', fs='fs', fmpp='fmpp', f0pp='f0pp', fmf0=4.88, alias=None):
     """Calculate photosynthetic parameters
 
-    Calculate photosynthetic parameters from basic fluorescence parameters
+    Calculate photosynthetic parameters from basic fluorescence parameters.
+
+    Requires the columns 'sample' and 'time'.
 
     :param df: The DataFrame to add the calculated parameters to.
     :param param: Parameter to calculate ('Fvfm','NPQ', 'NPQt','Phi2','PhiNO','PhiNPQ','qE','qEsv','qEt','qI','qIt','qL','qP')
@@ -31,6 +33,11 @@ def calculate(df=None, param='', *, fm='fm', f0='f0', fmp='fmp', f0p='f0p', fs='
 
     if df is None:
         raise Exception('No DataFrame selected.')
+    
+    for col in ['sample', 'time']:
+        if col not in df:
+            raise Exception('Column "%s" is required but not found.' % col)
+
     if (param in parameters):
         alias_txt = ""
         if alias is not None:
@@ -177,7 +184,9 @@ def calculate(df=None, param='', *, fm='fm', f0='f0', fmp='fmp', f0p='f0p', fs='
 def calculate_additional(df=None, param='', *, v_phino='PhiNOt', v_phi2='Phi2', v_ql='qL', v_par='light_intensity', phinoopt=0.2, absorptivity=0.5, fmf0=4.88, alias=None):
     """Calculate additional Parameters
 
-    Calculate additional photosynthetic parameters based on calculated standard parameters
+    Calculate additional photosynthetic parameters based on calculated standard parameters.
+
+    Requires the columns 'sample' and 'time'.
 
     :param df: The DataFrame to add the calculated parameters to.
     :param param: Parameter to calculate ('LEF', 'Vx', 'SPhi2', 'SNPQ', 'deltaNPQ')
@@ -196,6 +205,10 @@ def calculate_additional(df=None, param='', *, v_phino='PhiNOt', v_phi2='Phi2', 
 
     if df is None:
         raise Exception('No DataFrame selected.')
+    
+    for col in ['sample', 'time']:
+        if col not in df:
+            raise Exception('Column "%s" is required but not found.' % col)
 
     if (param in parameters):
         alias_txt = ""
@@ -264,6 +277,8 @@ def calculate_custom(df=None, name='', fn=None, *, cols=[], fill=[], params={}):
 
     Use a custom function to calculate a custom parameter.
 
+    Requires the columns 'sample' and 'time'.
+
     :param df: The DataFrame to add the calculated parameters to.
     :param name: Parameter name
     :param fn: Function name for the calculation
@@ -281,6 +296,10 @@ def calculate_custom(df=None, name='', fn=None, *, cols=[], fill=[], params={}):
 
     if (fn is None):
         raise Exception('No function defined.')
+    
+    for col in ['sample', 'time']:
+        if col not in df:
+            raise Exception('Column "%s" is required but not found.' % col)
 
     if hasattr(fn, '__call__'):
         df_tmp = df.sort_values(by=['sample', 'time'], ascending=True)

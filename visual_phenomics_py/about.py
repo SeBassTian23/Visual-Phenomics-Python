@@ -19,12 +19,17 @@ def info(df=None):
 def samples(df=None):
     """List with unique sample names from the DataFrame.
 
+    Requires the columns 'name'.
+
     :param df: DataFrame
     :returns: unique sample names (list)
     """
 
     if df is None:
         raise Exception('No DataFrame selected.')
+    
+    if 'name' not in df:
+        raise Exception('Column "name" not found.')
 
     return df['name'].unique()
 
@@ -32,11 +37,20 @@ def samples(df=None):
 def description(df=None):
     """Description of the experiments content.
 
+    Requires the columns 'experiment', 'sample', 'name', and 'time'.
+
     :param df: DataFrame
     """
 
     if df is None:
         raise Exception('No DataFrame selected.')
+    
+    if 'name' not in df:
+        raise Exception('Column "name" not found.')
+    
+    for col in ['experiment','sample','name', 'time']:
+        if col not in df:
+            raise Exception('Column "%s" is required but not found.' % col)
 
     light = 'n/a'
     if 'light_intensity' in df:
